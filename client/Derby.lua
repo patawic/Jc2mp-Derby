@@ -8,6 +8,8 @@ function Derby:__init()
     Network:Subscribe("enterVehicle", self, self.enterVehicle)
     Network:Subscribe("exitVehicle", self, self.exitVehicle)
 
+    Network:Subscribe("PlayerCount", self, self.PlayerCount)
+
     Events:Subscribe("Render", self, self.Render)
     Events:Subscribe("ModuleLoad", self, self.ModulesLoad)
     Events:Subscribe("ModulesLoad", self, self.ModulesLoad)
@@ -18,8 +20,7 @@ function Derby:__init()
     self.handbrake = nil
     --states
     self.state = "Inactive"
-    self.spectating = nil
-    self.playerType = nil
+    self.playerCount = nil
     self.countdownTimer = nil
     self.blockedKeys = { Action.StuntJump, Action.StuntposEnterVehicle, Action.ParachuteOpenClose, Action.ExitVehicle, Action.EnterVehicle, Action.UseItem }
 
@@ -46,7 +47,9 @@ function Derby:SetState(newstate)
         Events:Unsubscribe(self.handbrake)
     end
 end
-
+function Derby:PlayerCount(amount)
+    self.playerCount = amount
+end
 function Derby:enterVehicle()
     self.inVehicleTimer = nil
 end
@@ -84,12 +87,12 @@ function Derby:LocalPlayerInput(args)
         if LocalPlayer:InVehicle() then
             for i, action in ipairs(self.blockedKeys) do
                 if args.input == action then
-                    --return false
+                    return false
                 end
             end
         end
     elseif (self.state == "Setup" or self.state == "Countdown") then
-        --return false
+        return false
     end
 end
 function Derby:TextPos(text, size, offsetx, offsety)
@@ -104,13 +107,17 @@ function Derby:Render()
     if Game:GetState() ~= GUIState.Game then return end
 
     if (self.state ~= "Inactive") then
-        local pos = Vector2(3, Render.Height - 19)
+        local pos = Vector2(3, Render.Height - 32)
         Render:DrawText(pos, "Derby v0.0.1 By Patawic", Color(255, 255, 255), TextSize.Default) 
     end
     if (self.state == "Lobby") then
-
+        local pos = Vector2(3, Render.Height -  49)
+        Render:DrawText(pos, "Players Joined: " .. self.playerCount, Color(255, 255, 255), TextSize.Default) 
     end
     if (self.state == "Setup") then
+        local pos = Vector2(3, Render.Height -  49)
+        Render:DrawText(pos, "Players Left: " .. self.playerCount, Color(255, 255, 255), TextSize.Default)
+
         local text = "Initializing"
         local textinfo = self:TextPos(text, TextSize.VeryLarge, 0, -200)
         Render:DrawText(textinfo, text, Color( 255, 69, 0 ), TextSize.VeryLarge)    
@@ -120,6 +127,9 @@ function Derby:Render()
         Render:DrawText(textinfo, text, Color( 255, 69, 0 ), TextSize.Default)        
 
     elseif (self.state == "Countdown") then
+        local pos = Vector2(3, Render.Height -  49)
+        Render:DrawText(pos, "Players Left: " .. self.playerCount, Color(255, 255, 255), TextSize.Default)
+
         local time = 3 - math.floor(math.clamp(self.countdownTimer:GetSeconds(), 0 , 3))
         local message = {"Go!", "One", "Two", "Three"}
         local text = message[time + 1]
@@ -127,7 +137,8 @@ function Derby:Render()
         Render:DrawText(textinfo, text, Color( 255, 69, 0 ), TextSize.Huge)  
         
     elseif (self.state == "Running") then
-
+        local pos = Vector2(3, Render.Height -  49)
+        Render:DrawText(pos, "Players Left: " .. self.playerCount, Color(255, 255, 255), TextSize.Default) 
         --OUT OF ARENA
         if (self.outOfArena) then
             local text = "Out Of Arena"
