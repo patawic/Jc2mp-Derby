@@ -23,8 +23,8 @@ function Derby:__init(name, manager, world)
 
 	Events:Subscribe("PostTick", self, self.PostTick)
 
-    Events:Subscribe("PlayerEnterVehicle", self, self.enterVehicle)
-    Events:Subscribe("PlayerExitVehicle", self, self.exitVehicle)
+	Events:Subscribe("PlayerEnterVehicle", self, self.enterVehicle)
+	Events:Subscribe("PlayerExitVehicle", self, self.exitVehicle)
 	Events:Subscribe("PlayerDeath", self, self.PlayerDeath)
 	Events:Subscribe("PlayerQuit", self, self.PlayerLeave)
 
@@ -86,6 +86,10 @@ function Derby:PlayerDeath(args)
 			end
 			self:MessagePlayer(args.player, "Congratulations you came " ..tostring(self.numPlayers) .. numberEnding)
 			self:RemovePlayer(args.player)
+
+			local currentMoney = args.player:GetMoney()
+			local addMoney = math.ceil(100 * math.exp(self.scaleFactor * (self.maxPlayers - self.numPlayers)))
+			args.player:SetMoney(currentMoney + addMoney)
 		end
 	end
 end
@@ -120,6 +124,12 @@ function Derby:SetClientState(newstate)
 			Network:Send(player, "SetState", newstate)
 		end
 	end
+end
+
+function Derby:UpdatePlayerCount()  
+    for id ,player in pairs(self.players) do
+        Network:Send(player, "PlayerCount", self.numPlayers)
+    end
 end
 
 function Derby:ModuleUnload()
@@ -208,13 +218,16 @@ function Derby:Start()
 	for id , player in pairs(self.players) do
 				table.insert(tempPlayers , player)
 	end
+	local divider = math.floor(self.maxPlayers / self.numPlayers)
+	local idInc = 0
 
 	for index, player in ipairs(tempPlayers)do 
 		if (player:GetHealth() == 0) then
 			self:RemovePlayer(player, "You have been removed from the Derby event.")
 		else
-			self:SpawnPlayer(player, index)
+			self:SpawnPlayer(player, tonumber(index + idInc))
 		end
+		idInc = idInc + divider
 	end
 	self:MessageGlobal("Starting Derby event with " .. tostring(self.numPlayers) .. " players.")
 	self.raceManager:CreateDerbyEvent()
@@ -235,15 +248,6 @@ function Derby:SpawnPlayer(player, index)
 	vehicle:SetWorld(self.world)
 	vehicle:SetColors(color, color)
 	player:EnterVehicle(vehicle, VehicleSeat.Driver)
-
-	--[[for i=2,self.maxPlayers,1 do
-		local vehicle = Vehicle.Create(self.spawns.SpawnPoint[i].model, self.spawns.SpawnPoint[i].position, self.spawns.SpawnPoint[i].angle)
-		local color = Color(math.random(255),math.random(255),math.random(255))
-		vehicle:SetHealth(1)
-		vehicle:SetEnabled(true)
-		vehicle:SetWorld(self.world)
-		vehicle:SetColors(color, color)
-	end]]
 end
 ---------------------------------------------------------------------------------------------------------------------
 -------------------------------------------PLAYER JOINING/LEAVING----------------------------------------------------
@@ -265,6 +269,7 @@ function Derby:JoinPlayer(player)
 		self:MessagePlayer(player, "You have been entered into the next Derby event! It will begin shortly.") 
 
 		Network:Send(player, "SetState", "Lobby")
+		self:UpdatePlayerCount()
 	end
 end
 
@@ -282,6 +287,7 @@ function Derby:RemovePlayer(player, message)
 		p:Leave()
 	end
 	Network:Send(player, "SetState", "Inactive")
+	self:UpdatePlayerCount()
 end
 ---------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------CLEANUP-----------------------------------------------------------
