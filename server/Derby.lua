@@ -39,7 +39,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 function Derby:PostTick()
 	if (self.state == "Lobby") then
-		if ((self.numPlayers >= self.minPlayers and self.startTimer:GetSeconds() > 30) or self.numPlayers == self.maxPlayers) then
+		if ((self.numPlayers >= self.minPlayers and self.startTimer:GetSeconds() > 20) or self.numPlayers == self.maxPlayers) then
 			self:Start()
 		end
 	elseif (self.state == "Setup") then
