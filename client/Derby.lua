@@ -14,6 +14,8 @@ function Derby:__init()
     Events:Subscribe("ModuleUnload", self, self.ModuleUnload)
 
     Events:Subscribe("LocalPlayerInput" , self , self.LocalPlayerInput)
+
+    self.handbrake = nil
     --states
     self.state = "Inactive"
     self.spectating = nil
@@ -34,12 +36,14 @@ function Derby:SetState(newstate)
         self.state = "Lobby"
     elseif (newstate == "Setup") then
         self.state = "Setup"
+        self.handbrake = Events:Subscribe("InputPoll", function() Input:SetValue(Action.Handbrake, 1) end)
     elseif (newstate == "Countdown") then
         self.state = "Countdown"
         self.countdownTimer = Timer()
     elseif (newstate == "Running") then
         self.state = "Running"
         self.countdownTimer = nil
+        Events:Unsubscribe(self.handbrake)
     end
 end
 
@@ -80,12 +84,12 @@ function Derby:LocalPlayerInput(args)
         if LocalPlayer:InVehicle() then
             for i, action in ipairs(self.blockedKeys) do
                 if args.input == action then
-                    return false
+                    --return false
                 end
             end
         end
     elseif (self.state == "Setup" or self.state == "Countdown") then
-        return false
+        --return false
     end
 end
 function Derby:TextPos(text, size, offsetx, offsety)
@@ -99,9 +103,12 @@ function Derby:Render()
     if (self.state == "Inactive") then return end
     if Game:GetState() ~= GUIState.Game then return end
 
-    if (self.state == "Lobby") then
+    if (self.state ~= "Inactive") then
         local pos = Vector2(3, Render.Height - 19)
         Render:DrawText(pos, "Derby v0.0.1 By Patawic", Color(255, 255, 255), TextSize.Default) 
+    end
+    if (self.state == "Lobby") then
+
     end
     if (self.state == "Setup") then
         local text = "Initializing"
@@ -120,6 +127,7 @@ function Derby:Render()
         Render:DrawText(textinfo, text, Color( 255, 69, 0 ), TextSize.Huge)  
         
     elseif (self.state == "Running") then
+
         --OUT OF ARENA
         if (self.outOfArena) then
             local text = "Out Of Arena"

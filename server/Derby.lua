@@ -23,8 +23,11 @@ function Derby:__init(name, manager, world)
 
 	Events:Subscribe("PostTick", self, self.PostTick)
 
+    Events:Subscribe("PlayerEnterVehicle", self, self.enterVehicle)
+    Events:Subscribe("PlayerExitVehicle", self, self.exitVehicle)
 	Events:Subscribe("PlayerDeath", self, self.PlayerDeath)
-	Events:Subscribe("PlayerLeave", self, self.PlayerLeave)
+	Events:Subscribe("PlayerQuit", self, self.PlayerLeave)
+
 	Events:Subscribe("ModuleUnload", self, self.ModuleUnload)
 
 	self:MessageGlobal("A Derby event is about to begin! (Location: " .. self.spawns.Location .. ", Maximum Players: " .. self.maxPlayers ..") /derby to join")
@@ -55,22 +58,58 @@ function Derby:PostTick()
 		end
 	elseif (self.state == "Running") then
 		--check player and vehicle health
-        self:CheckHealth()
-        --player loses health when out of boundaries
-        self:CheckBoundaries()
-        --Actively check for players & handle derby ending
-        self:CheckPlayers()
+		self:CheckHealth()
+		--player loses health when out of boundaries
+		self:CheckBoundaries()
+		--Actively check for players & handle derby ending
+		self:CheckPlayers()
 	end
 end
 
 function Derby:PlayerDeath(args)
 	if self:HasPlayer(args.player) then
-		self.numPlayers = self.numPlayers - 1
+		if (self.state ~= "Lobby" and args.player:GetWorld() == self.world) then
+			local numberEnding = ""
+			local lastDigit = self.numPlayers % 10
+			if ((self.numPlayers < 10) or (self.numPlayers > 20 and self.numPlayers < 110) or (self.numPlayers > 120)) then
+				if (lastDigit  == 1) then
+					numberEnding = "st"
+				elseif (lastDigit == 2) then
+					numberEnding = "nd"
+				elseif (lastDigit == 3) then
+					numberEnding = "rd"
+				else
+					numberEnding = "th"
+				end
+			else
+				numberEnding = "th"
+			end
+			self:MessagePlayer(args.player, "Congratulations you came " ..tostring(self.numPlayers) .. numberEnding)
+			self:RemovePlayer(args.player)
+		end
 	end
 end
 
 function Derby:PlayerLeave(args)
-	self:RemovePlayer(args.player)
+	if (self:HasPlayer(args.player)) then
+		self:RemovePlayer(args.player)
+	end
+end
+
+function Derby:enterVehicle(args)
+	if (self.state ~= "Lobby" and self:HasPlayer(args.player)) then
+		self.eventPlayers[args.player:GetId()].vtimer = nil
+		Network:Send(args.player, "enterVehicle")
+	end
+end
+
+function Derby:exitVehicle(args)
+	if (self.state ~= "Lobby" and self:HasPlayer(args.player)) then
+		if args.player:GetHealth() > 0.1 then
+			self.eventPlayers[args.player:GetId()].vtimer = Timer()
+			Network:Send(args.player, "exitVehicle")
+		end
+	end
 end
 
 function Derby:SetClientState(newstate)
@@ -101,7 +140,8 @@ function Derby:CheckBoundaries()
 		local radius = self.spawns.Boundary.radius
 		local distanceSqr = (p:GetPosition() - boundary):LengthSqr()
 
-		if ((distanceSqr > radius and p:InVehicle()) or (p:GetPosition().y < self.spawns.MinimumY and p:InVehicle()) and p:GetWorld() == self.world) then
+		--CHECK IS PLAYER IS OUTSIDE THE EVENT BOUNDARIES
+		if ((distanceSqr > radius and p:InVehicle()) and p:GetWorld() == self.world) then
 			if (p.timer ~= nil) then
 				if p.timer:GetSeconds() > 2 then
 					local vhealth = p:GetVehicle():GetHealth()
@@ -117,6 +157,10 @@ function Derby:CheckBoundaries()
 			p.outOfArena = false
 			Network:Send(p, "BackInArena")
 		end
+		if (p:GetPosition().y < self.spawns.MinimumY and p:InVehicle()) then
+			p:SetHealth(0)
+		end
+
 		--handle the out of vehicle timer
 		local dp = self.eventPlayers[p:GetId()]
 		if dp.vtimer ~= nil then
@@ -127,31 +171,30 @@ function Derby:CheckBoundaries()
 	end
 end
 function Derby:CheckHealth()
-    for k,p in pairs(self.players) do
-        if (p:InVehicle()) then
-            if (p:GetVehicle():GetHealth() == 0) then
-                p:SetHealth(0)
-            end
-        end
-    end
+	for k,p in pairs(self.players) do
+		if (p:InVehicle()) then
+			if (p:GetVehicle():GetHealth() == 0) then
+				p:SetHealth(0)
+			end
+		end
+	end
 end
 function Derby:CheckPlayers()
-    if (self.numPlayers == 1 and self.state ~= "Lobby") then
-    --kick everyone out and broadcast the winner
-        for k,p in pairs(self.players) do
-            self:MessageGlobal(p:GetName() .. " has won the Demolition Derby!")
-            
-            local currentMoney = p:GetMoney()
-            local addMoney = math.ceil(100 * math.exp(self.scaleFactor * (self.maxPlayers - self.numPlayers)))
-            p:SetMoney(currentMoney + addMoney)
-            self:RemovePlayer(p, "Congratulations you came 1st!")
-            Network:Send(p, "SetState", "Inactive")
-        end
-        self:Cleanup()
-    elseif (self.numPlayers == 0) then
-        print ("no players left")
-        self:Cleanup()
-    end
+	if (self.numPlayers == 1 and self.state ~= "Lobby") then
+	--kick everyone out and broadcast the winner
+		for k,p in pairs(self.players) do
+			self:MessageGlobal(p:GetName() .. " has won the Demolition Derby!")
+			
+			local currentMoney = p:GetMoney()
+			local addMoney = math.ceil(100 * math.exp(self.scaleFactor * (self.maxPlayers - self.numPlayers)))
+			p:SetMoney(currentMoney + addMoney)
+			self:RemovePlayer(p, "Congratulations you came 1st!")
+		end
+		self:Cleanup()
+	elseif (self.numPlayers == 0) then
+		print ("no players left")
+		self:Cleanup()
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------EVENT START--------------------------------------------------------
@@ -177,7 +220,7 @@ function Derby:Start()
 	self.raceManager:CreateDerbyEvent()
 
 	self.highestMoney = self.maxPlayers * 400
-    self.scaleFactor = math.log(self.highestMoney/100)/self.maxPlayers
+	self.scaleFactor = math.log(self.highestMoney/100)/self.maxPlayers
 end
 
 function Derby:SpawnPlayer(player, index)
@@ -192,6 +235,15 @@ function Derby:SpawnPlayer(player, index)
 	vehicle:SetWorld(self.world)
 	vehicle:SetColors(color, color)
 	player:EnterVehicle(vehicle, VehicleSeat.Driver)
+
+	--[[for i=2,self.maxPlayers,1 do
+		local vehicle = Vehicle.Create(self.spawns.SpawnPoint[i].model, self.spawns.SpawnPoint[i].position, self.spawns.SpawnPoint[i].angle)
+		local color = Color(math.random(255),math.random(255),math.random(255))
+		vehicle:SetHealth(1)
+		vehicle:SetEnabled(true)
+		vehicle:SetWorld(self.world)
+		vehicle:SetColors(color, color)
+	end]]
 end
 ---------------------------------------------------------------------------------------------------------------------
 -------------------------------------------PLAYER JOINING/LEAVING----------------------------------------------------
