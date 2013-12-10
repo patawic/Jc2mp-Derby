@@ -5,6 +5,7 @@ function Derby:__init(name, manager, world)
 	self.world = world
 
 	self.state = "Lobby"
+	self.startTimer = Timer()
 
 	self.players = {}
 	self.eventPlayers = {}
@@ -38,7 +39,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 function Derby:PostTick()
 	if (self.state == "Lobby") then
-		if (self.numPlayers == self.maxPlayers and self.numPlayers >= self.minPlayers) then
+		if ((self.numPlayers >= self.minPlayers and self.startTimer:GetSeconds() > 30) or self.numPlayers == self.maxPlayers) then
 			self:Start()
 		end
 	elseif (self.state == "Setup") then
@@ -270,6 +271,7 @@ function Derby:JoinPlayer(player)
 
 		Network:Send(player, "SetState", "Lobby")
 		self:UpdatePlayerCount()
+		self.startTimer:Restart()
 	end
 end
 
