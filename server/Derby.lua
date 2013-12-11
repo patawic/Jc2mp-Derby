@@ -261,17 +261,19 @@ function Derby:JoinPlayer(player)
 	if (player:GetWorld() ~= DefaultWorld) then
 		self:MessagePlayer(player, "You must exit other gamemodes before you can join.")
 	else
-		local p = Player(player)
-		self.eventPlayers[player:GetId()] = p
-		self.players[player:GetId()] = player
+		if (self.state == "Lobby") then
+			local p = Player(player)
+			self.eventPlayers[player:GetId()] = p
+			self.players[player:GetId()] = player
 
-		self.raceManager.playerIds[player:GetId()] = true
-		self.numPlayers = self.numPlayers + 1
-		self:MessagePlayer(player, "You have been entered into the next Derby event! It will begin shortly.") 
+			self.raceManager.playerIds[player:GetId()] = true
+			self.numPlayers = self.numPlayers + 1
+			self:MessagePlayer(player, "You have been entered into the next Derby event! It will begin shortly.") 
 
-		Network:Send(player, "SetState", "Lobby")
-		self:UpdatePlayerCount()
-		self.startTimer:Restart()
+			Network:Send(player, "SetState", "Lobby")
+			self:UpdatePlayerCount()
+			self.startTimer:Restart()
+		end
 	end
 end
 
