@@ -1,1 +1,1 @@
-Events:Subscribe("ModuleLoad" , function() topfun = LobbyManager() end)
+Events:Subscribe("ModuleLoad" , function() derby = DerbyManager() end)
