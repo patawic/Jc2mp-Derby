@@ -1,7 +1,7 @@
 class "Derby"
 function Derby:__init(name, manager, world)
 	self.name = name
-	self.raceManager = manager
+	self.derbyManager = manager
 	self.world = world
 
 	self.state = "Lobby"
@@ -231,7 +231,7 @@ function Derby:Start()
 		idInc = idInc + divider
 	end
 	self:MessageGlobal("Starting Derby event with " .. tostring(self.numPlayers) .. " players.")
-	self.raceManager:CreateDerbyEvent()
+	self.derbyManager:CreateDerbyEvent()
 
 	self.highestMoney = self.maxPlayers * 400
 	self.scaleFactor = math.log(self.highestMoney/100)/self.maxPlayers
@@ -266,7 +266,7 @@ function Derby:JoinPlayer(player)
 			self.eventPlayers[player:GetId()] = p
 			self.players[player:GetId()] = player
 
-			self.raceManager.playerIds[player:GetId()] = true
+			self.derbyManager.playerIds[player:GetId()] = true
 			self.numPlayers = self.numPlayers + 1
 			self:MessagePlayer(player, "You have been entered into the next Derby event! It will begin shortly.") 
 
@@ -285,7 +285,7 @@ function Derby:RemovePlayer(player, message)
 	if p == nil then return end
 	self.players[player:GetId()] = nil
 	self.eventPlayers[player:GetId()] = nil
-	self.raceManager.playerIds[player:GetId()] = nil
+	self.derbyManager.playerIds[player:GetId()] = nil
 	self.numPlayers = self.numPlayers - 1
 	if (self.state ~= "Lobby") then
 		p:Leave()
@@ -299,6 +299,7 @@ end
 function Derby:Cleanup()
 	self.state = "Cleanup"
 	self.world:Remove()
+	self.derbyManager:RemoveDerby(self)
 	for index, player in pairs(self.players) do
 		self:RemovePlayer(player)
 	end
