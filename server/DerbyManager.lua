@@ -22,7 +22,14 @@ function LobbyManager:DerbyEvent(name)
 	self.count = self.count + 1
 	return Derby
 end
-
+function RaceManager:RemoveDerby(derby)
+	for index, event in ipairs(self.events) do
+		if event.name == derby.name then
+				table.remove(self.events, index)
+				break
+		end
+	end	
+end
 function LobbyManager:GenerateName()
 	return "Derby-"..tostring(self.count)
 end
