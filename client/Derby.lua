@@ -33,6 +33,11 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 function Derby:SetState(newstate)
     self.state = newstate
+    if (newstate == "Inactive") then
+        if (IsValid(self.handbrake)) then
+            Events:Unsubscribe(self.handbrake)
+        end
+    end
     if (newstate == "Lobby") then
         self.state = "Lobby"
     elseif (newstate == "Setup") then
