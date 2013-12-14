@@ -15,15 +15,20 @@ function Derby:__init(name, manager, world)
 
 	self.minPlayers = self.spawns.minPlayers
 	self.maxPlayers = self.spawns.maxPlayers
+	self.startPlayers = 0
 	self.numPlayers = 0
 	self.highestMoney = 0
 	self.scaleFactor = 0
 
+	self.globalStartTimer = Timer()
 	self.setupTimer = nil
 	self.countdownTimer = nil
+	self.derbyTimer = nil
 
 	Events:Subscribe("PostTick", self, self.PostTick)
 
+	Events:Register("JoinGamemode")
+	Events:Subscribe("JoinGamemode", self, self.JoinGamemode)
 	Events:Subscribe("PlayerEnterVehicle", self, self.enterVehicle)
 	Events:Subscribe("PlayerExitVehicle", self, self.exitVehicle)
 	Events:Subscribe("PlayerDeath", self, self.PlayerDeath)
@@ -39,7 +44,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 function Derby:PostTick()
 	if (self.state == "Lobby") then
-		if ((self.numPlayers >= self.minPlayers and self.startTimer:GetSeconds() > 20) or self.numPlayers == self.maxPlayers) then
+		if ((self.numPlayers >= self.minPlayers and self.startTimer:GetSeconds() > 20) or self.numPlayers == self.maxPlayers or (self.globalStartTimer:GetSeconds() > 300 and self.numPlayers >= self.minPlayers)) then
 			self:Start()
 		end
 	elseif (self.state == "Setup") then
@@ -56,12 +61,17 @@ function Derby:PostTick()
 			self.state = "Running"
 			self:SetClientState()
 			self.countdownTimer = nil
+			self.derbyTimer = Timer()
 		end
 	elseif (self.state == "Running") then
 		--check player and vehicle health
 		self:CheckHealth()
 		--player loses health when out of boundaries
-		self:CheckBoundaries()
+		if (self.derbyTimer:GetSeconds() > 5) then
+			self:CheckBoundaries()
+		end
+		--remove player if they go below the Y axis cap
+		self:CheckMinimumY()
 		--Actively check for players & handle derby ending
 		self:CheckPlayers()
 	end
@@ -89,7 +99,7 @@ function Derby:PlayerDeath(args)
 			self:RemovePlayer(args.player)
 
 			local currentMoney = args.player:GetMoney()
-			local addMoney = math.ceil(100 * math.exp(self.scaleFactor * (self.maxPlayers - self.numPlayers)))
+			local addMoney = math.ceil(100 * math.exp(self.scaleFactor * (self.startPlayers - self.numPlayers)))
 			args.player:SetMoney(currentMoney + addMoney)
 		end
 	end
@@ -128,9 +138,9 @@ function Derby:SetClientState(newstate)
 end
 
 function Derby:UpdatePlayerCount()  
-    for id ,player in pairs(self.players) do
-        Network:Send(player, "PlayerCount", self.numPlayers)
-    end
+	for id ,player in pairs(self.players) do
+		Network:Send(player, "PlayerCount", self.numPlayers)
+	end
 end
 
 function Derby:ModuleUnload()
@@ -140,6 +150,11 @@ function Derby:ModuleUnload()
 			self:MessagePlayer(p.player, "Derby script unloaded. You have been restored to your starting position.")
 			self:SetClientState("Inactive")
 		end
+	end
+end
+function Derby:JoinGamemode( args )
+	if args.name ~= "Derby" then
+		self:RemovePlayer(args.player)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------
@@ -168,9 +183,6 @@ function Derby:CheckBoundaries()
 			p.outOfArena = false
 			Network:Send(p, "BackInArena")
 		end
-		if (p:GetPosition().y < self.spawns.MinimumY and p:InVehicle()) then
-			p:SetHealth(0)
-		end
 
 		--handle the out of vehicle timer
 		local dp = self.eventPlayers[p:GetId()]
@@ -178,6 +190,13 @@ function Derby:CheckBoundaries()
 			if (dp.vtimer:GetSeconds() > 20) then
 			   p:SetHealth(0)
 			end
+		end
+	end
+end
+function Derby:CheckMinimumY()
+	for k,p in pairs(self.players) do
+		if (p:GetPosition().y < self.spawns.MinimumY and p:InVehicle()) then
+			p:SetHealth(0)
 		end
 	end
 end
@@ -211,6 +230,7 @@ end
 --------------------------------------------------EVENT START--------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------
 function Derby:Start()
+	self.startPlayers = self.numPlayers
 	self.setupTimer = Timer()
 	self.state = "Setup"
 	self:SetClientState()
@@ -233,21 +253,27 @@ function Derby:Start()
 	self:MessageGlobal("Starting Derby event with " .. tostring(self.numPlayers) .. " players.")
 	self.derbyManager:CreateDerbyEvent()
 
-	self.highestMoney = self.maxPlayers * 400
-	self.scaleFactor = math.log(self.highestMoney/100)/self.maxPlayers
+	self.highestMoney = self.startPlayers * 400
+	self.scaleFactor = math.log(self.highestMoney/100)/self.startPlayers
 end
 
 function Derby:SpawnPlayer(player, index)
+	--CREATE THE VEHICLE
+	local vehicle = Vehicle.Create(self.spawns.SpawnPoint[index].model, self.spawns.SpawnPoint[index].position, self.spawns.SpawnPoint[index].angle)
+	local color = Color(math.random(255),math.random(255),math.random(255))
+	vehicle:SetEnabled(true)
+	vehicle:SetHealth(1)
+	vehicle:SetDeathRemove(true)
+	vehicle:SetUnoccupiedRemove(true)
+	vehicle:SetWorld(self.world)
+	vehicle:SetColors(color, color)
+
+	--TELEPORT THE PLAYER
 	player:SetWorld(self.world)
 	player:SetPosition(self.spawns.SpawnPoint[index].position)
 	player:ClearInventory()
 
-	local vehicle = Vehicle.Create(self.spawns.SpawnPoint[index].model, self.spawns.SpawnPoint[index].position, self.spawns.SpawnPoint[index].angle)
-	local color = Color(math.random(255),math.random(255),math.random(255))
-	vehicle:SetHealth(1)
-	vehicle:SetEnabled(true)
-	vehicle:SetWorld(self.world)
-	vehicle:SetColors(color, color)
+	--PLACE PLAYER IN THE VEHICLE
 	player:EnterVehicle(vehicle, VehicleSeat.Driver)
 end
 ---------------------------------------------------------------------------------------------------------------------
