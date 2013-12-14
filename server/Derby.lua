@@ -44,7 +44,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 function Derby:PostTick()
 	if (self.state == "Lobby") then
-		if ((self.numPlayers >= self.minPlayers and self.startTimer:GetSeconds() > 20) or self.numPlayers == self.maxPlayers or (self.globalStartTimer:GetSeconds() > 300 and self.numPlayers >= self.minPlayers)) then
+		if ((self.numPlayers >= self.minPlayers and self.startTimer:GetSeconds() > 20) or (self.numPlayers >= self.minPlayers and self.globalStartTimer:GetSeconds() > 300)) then
 			self:Start()
 		end
 	elseif (self.state == "Setup") then
@@ -266,9 +266,9 @@ end
 --------------------------------------------------EVENT START--------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------
 function Derby:Start()
+	self.state = "Setup"
 	self.startPlayers = self.numPlayers
 	self.setupTimer = Timer()
-	self.state = "Setup"
 	self:SetClientState()
 
 	local tempPlayers = {}
@@ -346,6 +346,10 @@ function Derby:JoinPlayer(player)
 			Network:Send(player, "SetState", "Lobby")
 			self:UpdatePlayerCount()
 			self.startTimer:Restart()
+
+			if (self.numPlayers == self.maxPlayers) then
+				self:Start()
+			end
 		end
 	end
 end
