@@ -1,14 +1,14 @@
 class "Player"
 function Player:__init(player)
 	self.player = player
-    self.type = nil
-    self.spectating = nil
-    self.dead = false
 	self.playerId = player:GetId()
     self.start_pos = player:GetPosition()
     self.start_world = player:GetWorld()
     self.inventory = player:GetInventory()
 
+    self.derbyPosition = nil
+    self.derbyAngle = nil
+    self.derbyVehicle = nil
 end
 
 function Player:Leave()
