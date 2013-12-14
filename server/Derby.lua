@@ -390,7 +390,7 @@ function Derby:MessageGlobal(message)
 end
 
 function Derby:Log(message)
-	local file = io.open("server/Logs/" .. self.name .. ".txt", "a+")
- 	file:write(os.date().. " " .. message .. "\n")
- 	file:close()
+	--local file = io.open("server/Logs/" .. self.name .. ".txt", "a+")
+ 	--file:write(os.date().. " " .. message .. "\n")
+ 	--file:close()
 end
