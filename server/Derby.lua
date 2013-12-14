@@ -172,7 +172,7 @@ end
 function Derby:RespawnPlayers()
 	for k,p in pairs(self.eventPlayers) do
 		if (p.player:InVehicle() == false) then
-			self:RemovePlayer(player, "An error occured, you were removed from the derby.")
+			self:RemovePlayer(p.player, "An error occured, you were removed from the derby.")
 		else
 			if (p.derbyPosition:Distance(p.player:GetPosition()) > 5) then
 				p.derbyVehicle:SetPosition(p.derbyPosition)
