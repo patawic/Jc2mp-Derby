@@ -69,6 +69,8 @@ function Derby:PostTick()
 		--player loses health when out of boundaries
 		if (self.derbyTimer:GetSeconds() > 5) then
 			self:CheckBoundaries()
+			--remove player if they go above the Y axis cap
+			self:CheckMaximumY()
 		end
 		--remove player if they go below the Y axis cap
 		self:CheckMinimumY()
@@ -172,7 +174,7 @@ function Derby:CheckBoundaries()
 		local distanceSqr = (p:GetPosition() - boundary):LengthSqr()
 
 		--CHECK IS PLAYER IS OUTSIDE THE EVENT BOUNDARIES
-		if ((distanceSqr > radius and p:InVehicle()) and p:GetWorld() == self.world) then
+		if ((distanceSqr > radius or p:GetPosition().y > self.spawns.MaximumY and p:InVehicle()) and p:GetWorld() == self.world) then
 			if (p.timer ~= nil) then
 				if p.timer:GetSeconds() > 2 then
 					local vhealth = p:GetVehicle():GetHealth()
@@ -188,7 +190,6 @@ function Derby:CheckBoundaries()
 			p.outOfArena = false
 			Network:Send(p, "BackInArena")
 		end
-
 		--handle the out of vehicle timer
 		local dp = self.eventPlayers[p:GetId()]
 		if dp.vtimer ~= nil then
@@ -204,6 +205,15 @@ function Derby:CheckMinimumY()
 			p:SetHealth(0)
 		end
 	end
+end
+function Derby:CheckMaximumY()
+	for k,p in pairs(self.players) do
+		if (p:InVehicle() == false) then
+			if (p:GetPosition().y > self.spawns.MaximumY) then
+				self:RemovePlayer(p, "You have been removed from the derby event!")
+			end
+		end
+	end	
 end
 function Derby:CheckHealth()
 	for k,p in pairs(self.players) do
