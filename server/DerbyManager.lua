@@ -1,5 +1,5 @@
-class "LobbyManager"
-function LobbyManager:__init()
+class "DerbyManager"
+function DerbyManager:__init()
 
 
 	self.count = 0
@@ -12,17 +12,17 @@ function LobbyManager:__init()
 	Events:Subscribe("PlayerChat", self, self.ChatMessage)
 end
 
-function LobbyManager:CreateDerbyEvent()
+function DerbyManager:CreateDerbyEvent()
 	self.currentDerby = self:DerbyEvent(self:GenerateName())
 end
-function LobbyManager:DerbyEvent(name)
+function DerbyManager:DerbyEvent(name)
 	local Derby = Derby(name, self, World.Create())
 	table.insert(self.events, Derby)
 
 	self.count = self.count + 1
 	return Derby
 end
-function RaceManager:RemoveDerby(derby)
+function DerbyManager:RemoveDerby(derby)
 	for index, event in ipairs(self.events) do
 		if event.name == derby.name then
 				table.remove(self.events, index)
@@ -30,25 +30,25 @@ function RaceManager:RemoveDerby(derby)
 		end
 	end	
 end
-function LobbyManager:GenerateName()
+function DerbyManager:GenerateName()
 	return "Derby-"..tostring(self.count)
 end
 
 -------------
 --CHAT SHIT--
 -------------
-function LobbyManager:MessagePlayer(player, message)
+function DerbyManager:MessagePlayer(player, message)
 	player:SendChatMessage( "[Derby-" .. tostring(self.count) .."] " .. message, Color(30, 200, 220) )
 end
 
-function LobbyManager:MessageGlobal(message)
+function DerbyManager:MessageGlobal(message)
 	Chat:Broadcast( "[Derby-" .. tostring(self.count) .."] " .. message, Color(0, 255, 255) )
 end
 
-function LobbyManager:HasPlayer(player)
+function DerbyManager:HasPlayer(player)
 	return self.playerIds[player:GetId()]
 end
-function LobbyManager:RemovePlayer(player)
+function DerbyManager:RemovePlayer(player)
 	for index, event in ipairs(self.events) do
 		if (event.players[player:GetId()]) then
 			event:RemovePlayer(player, "You have been removed from the Derby event.")
@@ -56,7 +56,7 @@ function LobbyManager:RemovePlayer(player)
 	end
 end
 
-function LobbyManager:ChatMessage(args)
+function DerbyManager:ChatMessage(args)
 	local msg = args.text
 	local player = args.player
 	
