@@ -54,6 +54,8 @@ function Derby:PostTick()
 			self.state = "Countdown"
 			self:SetClientState()
 			self.setupTimer = nil
+
+			self:RespawnPlayers()
 		end
 	elseif (self.state == "Countdown") then
 		if (self.countdownTimer:GetSeconds() > 4) then
@@ -167,6 +169,20 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------
+function Derby:RespawnPlayers()
+	for k,p in pairs(self.eventPlayers) do
+		if (p.player:InVehicle() == false) then
+			self:RemovePlayer(player, "An error occured, you were removed from the derby.")
+		else
+			if (p.derbyPosition:Distance(p.player:GetPosition()) > 5) then
+				p.derbyVehicle:SetPosition(p.derbyPosition)
+				p.derbyVehicle:SetAngle(p.derbyAngle)
+				p.derbyVehicle:SetLinearVelocity(Vector(0,0,0))
+			end
+			p.player:GetVehicle():SetHealth(1)
+		end
+	end
+end
 function Derby:CheckBoundaries()
 	for k,p in pairs(self.players) do
 		local boundary = self.spawns.Boundary.position
@@ -278,23 +294,32 @@ function Derby:Start()
 end
 
 function Derby:SpawnPlayer(player, index)
-	--CREATE THE VEHICLE
-	local vehicle = Vehicle.Create(self.spawns.SpawnPoint[index].model, self.spawns.SpawnPoint[index].position, self.spawns.SpawnPoint[index].angle)
-	local color = Color(math.random(255),math.random(255),math.random(255))
-	vehicle:SetEnabled(true)
-	vehicle:SetHealth(1)
-	vehicle:SetDeathRemove(true)
-	vehicle:SetUnoccupiedRemove(true)
-	vehicle:SetWorld(self.world)
-	vehicle:SetColors(color, color)
+	if (IsValid(self.spawns.SpawnPoint[index]) ~= nil) then
+		--CREATE THE VEHICLE
+		local vehicle = Vehicle.Create(self.spawns.SpawnPoint[index].model, self.spawns.SpawnPoint[index].position, self.spawns.SpawnPoint[index].angle)
+		local color = Color(math.random(255),math.random(255),math.random(255))
+		vehicle:SetEnabled(true)
+		vehicle:SetHealth(1)
+		vehicle:SetDeathRemove(true)
+		vehicle:SetUnoccupiedRemove(true)
+		vehicle:SetWorld(self.world)
+		vehicle:SetColors(color, color)
 
-	--TELEPORT THE PLAYER
-	player:SetWorld(self.world)
-	player:SetPosition(self.spawns.SpawnPoint[index].position)
-	player:ClearInventory()
+		--TELEPORT THE PLAYER
+		player:SetWorld(self.world)
+		player:SetPosition(self.spawns.SpawnPoint[index].position)
+		player:ClearInventory()
 
-	--PLACE PLAYER IN THE VEHICLE
-	player:EnterVehicle(vehicle, VehicleSeat.Driver)
+		--PLACE PLAYER IN THE VEHICLE
+		player:EnterVehicle(vehicle, VehicleSeat.Driver)
+
+		local p = self.eventPlayers[player:GetId()]
+		p.derbyPosition = self.spawns.SpawnPoint[index].position
+		p.derbyAngle = self.spawns.SpawnPoint[index].angle
+		p.derbyVehicle = vehicle
+	else
+		self:RemovePlayer(player, "An error occured, you were removed from the derby.")
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------
 -------------------------------------------PLAYER JOINING/LEAVING----------------------------------------------------
