@@ -240,15 +240,13 @@ function Derby:Start()
 				table.insert(tempPlayers , player)
 	end
 	local divider = math.floor(self.maxPlayers / self.numPlayers)
-	local idInc = 0
 
 	for index, player in ipairs(tempPlayers)do 
 		if (player:GetHealth() == 0) then
 			self:RemovePlayer(player, "You have been removed from the Derby event.")
 		else
-			self:SpawnPlayer(player, tonumber(index + idInc))
+			self:SpawnPlayer(player, tonumber(index))
 		end
-		idInc = idInc + divider
 	end
 	self:MessageGlobal("Starting Derby event with " .. tostring(self.numPlayers) .. " players.")
 	self.derbyManager:CreateDerbyEvent()
