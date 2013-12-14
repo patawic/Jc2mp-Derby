@@ -190,7 +190,7 @@ function Derby:CheckBoundaries()
 		local distanceSqr = (p:GetPosition() - boundary):LengthSqr()
 
 		--CHECK IS PLAYER IS OUTSIDE THE EVENT BOUNDARIES
-		if ((distanceSqr > radius or p:GetPosition().y > self.spawns.MaximumY and p:InVehicle()) and p:GetWorld() == self.world) then
+		if ((distanceSqr > radius or p:GetPosition().y > self.spawns.MaximumY) and p:InVehicle() and p:GetWorld() == self.world) then
 			if (p.timer ~= nil) then
 				if p.timer:GetSeconds() > 2 then
 					local vhealth = p:GetVehicle():GetHealth()
