@@ -58,6 +58,7 @@ function Course:LoadCourse(name)
 	course.SpawnPoint = {}
 	course.Boundary = {}
 	course.MinimumY = nil
+	course.MaximumY = nil
 
 	--loop through file line by line
 	for line in file:lines() do
@@ -71,8 +72,10 @@ function Course:LoadCourse(name)
 			local boundary = self:Boundary(line)
 			course.Boundary.position = boundary.position
 			course.Boundary.radius = boundary.radius
-		elseif line:sub(1,1) == "M" then
+		elseif line:sub(1,1) == "M" and line:sub(2,2) == "i"then
 			course.MinimumY = self:MinimumY(line)
+		elseif line:sub(1,1) == "M" and line:sub(2,2) == "a"then
+			course.MaximumY = self:MaximumY(line)
 		elseif line:sub(1,1) == "S" then
 			table.insert(course.SpawnPoint, self:Spawn(line))
 		end
@@ -113,6 +116,12 @@ function Course:Boundary(line)
 end
 function Course:MinimumY(line)
 	line = line:gsub("MinimumY%(", "")
+	line = line:gsub("%)", "")
+
+	return tonumber(line)
+end
+function Course:MaximumY(line)
+	line = line:gsub("MaximumY%(", "")
 	line = line:gsub("%)", "")
 
 	return tonumber(line)
