@@ -55,7 +55,6 @@ function Derby:PostTick()
 			self:SetClientState()
 			self.setupTimer = nil
 
-			self:RespawnPlayers()
 		end
 	elseif (self.state == "Countdown") then
 		if (self.countdownTimer:GetSeconds() > 4) then
@@ -64,6 +63,8 @@ function Derby:PostTick()
 			self:SetClientState()
 			self.countdownTimer = nil
 			self.derbyTimer = Timer()
+
+			self:RespawnPlayers()
 		end
 	elseif (self.state == "Running") then
 		--check player and vehicle health
