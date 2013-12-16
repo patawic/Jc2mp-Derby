@@ -9,6 +9,8 @@ function Player:__init(player)
     self.derbyPosition = nil
     self.derbyAngle = nil
     self.derbyVehicle = nil
+
+    self.hijackCount = 0
 end
 
 function Player:Leave()
