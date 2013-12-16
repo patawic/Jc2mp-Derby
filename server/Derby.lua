@@ -108,7 +108,7 @@ function Derby:PlayerDeath(args)
 			self:Log(args.player:GetName() .. " came " ..tostring(self.numPlayers) .. numberEnding)
 			local currentMoney = args.player:GetMoney()
 			self:Log(args.player:GetName() .. " Current Money: " .. tostring(currentMoney))
-			local addMoney = math.ceil(100 * math.exp(self.scaleFactor * (self.startPlayers - self.numPlayers)))
+			local addMoney = math.ceil(100 * math.exp(self.scaleFactor * (self.startPlayers - self.numPlayers))) / 2
 			self:Log(args.player:GetName() .. " add Money: " .. tostring(addMoney))
 			args.player:SetMoney(currentMoney + addMoney)
 			self:Log(args.player:GetName() .. " New Money: " .. tostring(args.player:GetMoney()))
@@ -265,7 +265,7 @@ function Derby:CheckPlayers()
 			
 			local currentMoney = p:GetMoney()
 			self:Log(p:GetName() .. " Current Money: " .. tostring(currentMoney))
-			local addMoney = math.ceil(100 * math.exp(self.scaleFactor * (self.startPlayers - self.numPlayers)))
+			local addMoney = math.ceil(100 * math.exp(self.scaleFactor * (self.startPlayers - self.numPlayers))) / 2
 			self:Log(p:GetName() .. " add Money: " .. tostring(addMoney))
 			p:SetMoney(currentMoney + addMoney)
 			self:Log(p:GetName() .. " New Money: " .. tostring(p:GetMoney()))
