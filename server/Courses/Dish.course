@@ -1,4 +1,5 @@
 Location(Dish)
+Type(Large)
 Players(10,144)
 Boundary(6922, 716, 1036, 23250)
 MaximumY(757)

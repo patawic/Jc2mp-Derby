@@ -1,4 +1,5 @@
 Location(Circle Island)
+Type(Small)
 Players(2,12)
 Boundary(-3895.54, 209, 13905.5, 56000)
 MaximumY(400)
