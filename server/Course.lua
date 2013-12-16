@@ -190,7 +190,11 @@ function Course:PickCourse()
 	if self.derbyManager.largeActive == true then
 		return table.randomvalue(self.smallCourses)
 	else
-		self.derbyManager.largeActive = true
-		return table.randomvalue(self.largeCourses)
+		if #self.largeCourses ~= 0 then
+			self.derbyManager.largeActive = true
+			return table.randomvalue(self.largeCourses)
+		else
+			return table.randomvalue(self.smallCourses)
+		end
 	end
 end
