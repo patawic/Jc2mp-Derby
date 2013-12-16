@@ -10,8 +10,9 @@ function Derby:__init(name, manager, world)
 	self.players = {}
 	self.eventPlayers = {}
 
-	self.course = Course()
+	self.course = Course(self.derbyManager)
 	self.spawns = self.course:LoadCourse()
+	self.courseType = self.spawns.courseType
 
 	self.minPlayers = self.spawns.minPlayers
 	self.maxPlayers = self.spawns.maxPlayers
@@ -123,8 +124,22 @@ end
 
 function Derby:enterVehicle(args)
 	if (self.state ~= "Lobby" and self:HasPlayer(args.player)) then
-		self.eventPlayers[args.player:GetId()].vtimer = nil
-		Network:Send(args.player, "enterVehicle")
+		if (self.eventPlayers[args.player:GetId()].derbyVehicle:GetId() ~= args.vehicle:GetId()) then
+			self:MessagePlayer(args.player, "This vehicle does not belong to you")
+			self.eventPlayers[args.player:GetId()].hijackCount = self.eventPlayers[args.player:GetId()].hijackCount + 1
+			if (self.eventPlayers[args.player:GetId()].hijackCount >= 3) then
+				self:RemovePlayer(args.player, "You have been removed for multiple hijacking offences")
+			end
+			args.player:SetPosition(args.player:GetPosition())
+			for index, p in pairs(self.eventPlayers) do
+				if (p.derbyVehicle:GetId() == args.vehicle:GetId()) then
+					p.player:EnterVehicle(args.vehicle, VehicleSeat.Driver)
+				end
+			end
+		else
+			self.eventPlayers[args.player:GetId()].vtimer = nil
+			Network:Send(args.player, "enterVehicle")
+		end
 	end
 end
 
@@ -173,7 +188,8 @@ end
 function Derby:RespawnPlayers()
 	for k,p in pairs(self.eventPlayers) do
 		if (p.player:InVehicle() == false) then
-			self:RemovePlayer(p.player, "An error occured, you were removed from the derby.")
+			local vehicle = p.derbyVehicle
+			p.player:EnterVehicle(vehicle, VehicleSeat.Driver)
 		else
 			if (p.derbyPosition:Distance(p.player:GetPosition()) > 5) then
 				p.derbyVehicle:SetPosition(p.derbyPosition)
@@ -292,6 +308,7 @@ function Derby:Start()
 	self:Log("Highest Money: ".. tostring(self.highestMoney))
 	self.scaleFactor = math.log(self.highestMoney/100)/self.startPlayers
 	self:Log("scaleFactor : ".. tostring(self.scaleFactor))
+
 end
 
 function Derby:SpawnPlayer(player, index)
@@ -321,6 +338,7 @@ function Derby:SpawnPlayer(player, index)
 	else
 		self:RemovePlayer(player, "An error occured, you were removed from the derby.")
 	end
+
 end
 ---------------------------------------------------------------------------------------------------------------------
 -------------------------------------------PLAYER JOINING/LEAVING----------------------------------------------------
@@ -376,6 +394,9 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 function Derby:Cleanup()
 	self.state = "Cleanup"
+	if self.courseType == "Large" then
+		self.derbyManager.largeActive = false
+	end
 	self.world:Remove()
 	self.derbyManager:RemoveDerby(self)
 	for index, player in pairs(self.players) do
