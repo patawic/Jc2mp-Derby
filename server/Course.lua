@@ -154,7 +154,7 @@ function Course:Boundary(line)
 	local tokens = line:split(",")   
 	local args = {}
 	-- Create tables containing appropriate strings
-	args.position	= Vector(tonumber(tokens[1]), tonumber(tokens[2]), tonumber(tokens[3]))
+	args.position	= Vector3(tonumber(tokens[1]), tonumber(tokens[2]), tonumber(tokens[3]))
 	args.radius		= tonumber(tokens[4])
 
 	return args
@@ -181,7 +181,7 @@ function Course:Spawn(line)
 	--model id
 	args.model  = tonumber(tokens[1])
 	-- Create tables containing appropriate strings
-	args.position	= Vector(tonumber(tokens[2]), tonumber(tokens[3]), tonumber(tokens[4]))
+	args.position	= Vector3(tonumber(tokens[2]), tonumber(tokens[3]), tonumber(tokens[4]))
 	args.angle		= Angle(tonumber(tokens[5]), tonumber(tokens[6]), tonumber(tokens[7]))
 
 	return args

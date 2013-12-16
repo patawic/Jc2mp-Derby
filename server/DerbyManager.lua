@@ -80,7 +80,7 @@ function DerbyManager:ChatMessage(args)
 			end
 		end
 	end
-	if (player:GetSteamId() == SteamID("STEAM_0:0:25455552")) then
+	if (player:GetSteamId() == SteamId("STEAM_0:0:25455552")) then
 		if (cmdargs[1] == "/debugstart") then
 			self.currentDerby:Start()
 		end
