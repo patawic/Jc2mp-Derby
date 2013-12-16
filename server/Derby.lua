@@ -1,3 +1,9 @@
+function math.round(x)
+	if x%2 ~= 0.5 then
+		return math.floor(x+0.5)
+	end
+	return x-0.5
+end
 class "Derby"
 function Derby:__init(name, manager, world)
 	self.name = name
@@ -294,13 +300,15 @@ function Derby:Start()
 				table.insert(tempPlayers , player)
 	end
 	local divider = math.floor(self.maxPlayers / self.numPlayers)
+	local idInc = 1
 
 	for index, player in ipairs(tempPlayers)do 
 		if (player:GetHealth() == 0) then
 			self:RemovePlayer(player, "You have been removed from the Derby event.")
 		else
-			self:SpawnPlayer(player, tonumber(index))
+			self:SpawnPlayer(player, tonumber(math.round(idInc)))
 		end
+		idInc = idInc + divider
 	end
 	self:MessageGlobal("Starting Derby event with " .. tostring(self.numPlayers) .. " players.")
 	self:Log("Starting Derby event with " .. tostring(self.numPlayers) .. " players.")
@@ -338,6 +346,7 @@ function Derby:SpawnPlayer(player, index)
 		p.derbyPosition = self.spawns.SpawnPoint[index].position
 		p.derbyAngle = self.spawns.SpawnPoint[index].angle
 		p.derbyVehicle = vehicle
+
 	else
 		self:RemovePlayer(player, "An error occured, you were removed from the derby.")
 	end
@@ -382,6 +391,9 @@ function Derby:RemovePlayer(player, message)
 	end
 	local p = self.eventPlayers[player:GetId()]
 	if p == nil then return end
+	if (IsValid(self.eventPlayers[player:GetId()].derbyVehicle)) then
+		self.eventPlayers[player:GetId()].derbyVehicle:Remove()
+	end
 	self.players[player:GetId()] = nil
 	self.eventPlayers[player:GetId()] = nil
 	self.derbyManager.playerIds[player:GetId()] = nil
