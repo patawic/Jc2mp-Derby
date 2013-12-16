@@ -94,12 +94,12 @@ function Derby:LocalPlayerInput(args)
         if LocalPlayer:InVehicle() then
             for i, action in ipairs(self.blockedKeys) do
                 if args.input == action then
-                    --return false
+                    return false
                 end
             end
         end
     elseif (self.state == "Setup" or self.state == "Countdown") then
-        --return false
+        return false
     end
 end
 function Derby:TextPos(text, size, offsetx, offsety)
