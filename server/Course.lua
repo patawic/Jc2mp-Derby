@@ -1,10 +1,15 @@
 class "Course"
-function Course:__init()
+function Course:__init(manager)
+	self.derbyManager = manager
 	self.manifestPath = "server/Courses/Manifest.txt"
 	self.courseNames = {}
 	self.numCourses = 0
 
+	self.smallCourses = {}
+	self.largeCourses = {}
+
 	self:LoadManifest(self.manifestPath)
+	self:DetermineClass()
 end
 ---------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------MANIFEST LOADING-----------------------------------------------------
@@ -32,11 +37,42 @@ function Course:LoadManifest(path)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------
+------------------------------------------------DETERMINE CLASSES----------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+function Course:DetermineClass()
+	for index, course in pairs(self.courseNames) do
+		local path = "server/Courses/" .. course .. ".course"
+		--check if path is invalid
+		if path == nil then
+			print("*ERROR* - Course path is nil!")
+			return nil
+		end	
+		local file = io.open(path , "r") 
+		--check if file exists
+		if not file then
+			print("*ERROR* - Cannot open course file: "..path)
+			return nil
+		end
+		for line in file:lines() do
+			if line:sub(1,1) == "T" then
+				line = line:gsub("Type%(", "")
+				line = line:gsub("%)", "")
+
+				if (line == "Small") then
+					table.insert(self.smallCourses, course)
+				elseif (line == "Large") then
+					table.insert(self.largeCourses, course)
+				end
+			end
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------COURSE FILE PARSING---------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------
 function Course:LoadCourse(name)
 	if name == nil then
-		name = self:PickRandomCourse()
+		name = self:PickCourse()
 	end
 	local path = "server/Courses/" .. name .. ".course"
 	--check if path is invalid
@@ -53,6 +89,7 @@ function Course:LoadCourse(name)
 
 	local course = {}
 	course.Location = nil
+	course.courseType = nil
 	course.minPlayers = nil
 	course.maxPlayers = nil
 	course.SpawnPoint = {}
@@ -64,6 +101,8 @@ function Course:LoadCourse(name)
 	for line in file:lines() do
 		if line:sub(1,1) == "L" then
 			course.Location =  self:Location(line)
+		elseif line:sub(1,1) == "T" then
+			course.courseType =  self:Type(line)
 		elseif line:sub(1,1) == "P" then
 			local playerCount = self:Players(line)
 			course.minPlayers = playerCount.minPlayers
@@ -84,6 +123,12 @@ function Course:LoadCourse(name)
 end
 function Course:Location(line)
 	line = line:gsub("Location%(", "")
+	line = line:gsub("%)", "")
+
+	return line
+end
+function Course:Type(line)
+	line = line:gsub("Type%(", "")
 	line = line:gsub("%)", "")
 
 	return line
@@ -141,7 +186,11 @@ function Course:Spawn(line)
 
 	return args
 end
-
-function Course:PickRandomCourse()
-	return table.randomvalue(self.courseNames)
+function Course:PickCourse()
+	if self.derbyManager.largeActive == true then
+		return table.randomvalue(self.smallCourses)
+	else
+		self.derbyManager.largeActive = true
+		return table.randomvalue(self.largeCourses)
+	end
 end
