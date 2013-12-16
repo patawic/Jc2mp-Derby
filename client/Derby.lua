@@ -37,9 +37,11 @@ function Derby:SetState(newstate)
         if (IsValid(self.handbrake)) then
             Events:Unsubscribe(self.handbrake)
         end
+        self:BackInArena()
     end
     if (newstate == "Lobby") then
         self.state = "Lobby"
+        self:BackInArena()
     elseif (newstate == "Setup") then
         self.state = "Setup"
         self.handbrake = Events:Subscribe("InputPoll", function() Input:SetValue(Action.Handbrake, 1) end)
@@ -92,12 +94,12 @@ function Derby:LocalPlayerInput(args)
         if LocalPlayer:InVehicle() then
             for i, action in ipairs(self.blockedKeys) do
                 if args.input == action then
-                    return false
+                    --return false
                 end
             end
         end
     elseif (self.state == "Setup" or self.state == "Countdown") then
-        return false
+        --return false
     end
 end
 function Derby:TextPos(text, size, offsetx, offsety)
@@ -113,7 +115,7 @@ function Derby:Render()
 
     if (self.state ~= "Inactive") then
         local pos = Vector2(3, Render.Height - 32)
-        Render:DrawText(pos, "Derby v0.0.1 By Patawic", Color(255, 255, 255), TextSize.Default) 
+        Render:DrawText(pos, "Derby v0.0.9 By Patawic", Color(255, 255, 255), TextSize.Default) 
     end
     if (self.state == "Lobby") then
         local pos = Vector2(3, Render.Height -  49)
