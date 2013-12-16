@@ -1,12 +1,11 @@
 class "DerbyManager"
 function DerbyManager:__init()
-
-
 	self.count = 0
 	self.players = {}
 	self.playerIds = {}
 
 	self.events = {}
+	self.largeActive = false
 	self:CreateDerbyEvent()
 
 	Events:Subscribe("PlayerChat", self, self.ChatMessage)
@@ -75,14 +74,24 @@ function DerbyManager:ChatMessage(args)
 			self.currentDerby:RemovePlayer(player, "You have been removed from the Derby event.")
 		else        
 			if (self:HasPlayer(player)) then
-				self:RemovePlayer(player, "You have been removed from the Derby event.")
+				self:RemovePlayer(player)
 			else
 				self.currentDerby:JoinPlayer(player)
 			end
 		end
 	end
-	if (cmdargs[1] == "/debugstart") then
-		self.currentDerby:Start()
+	if (player:GetSteamId() == SteamID("STEAM_0:0:25455552")) then
+		if (cmdargs[1] == "/debugstart") then
+			self.currentDerby:Start()
+		end
+		if (cmdargs[1] == "/joinall") then
+			for player in Server:GetPlayers() do
+				if not self.currentDerby:HasPlayer(player) then
+					self.currentDerby:JoinPlayer(player)
+				end
+			end
+			self.currentDerby:Start()
+		end
 	end
 	return false
 end
