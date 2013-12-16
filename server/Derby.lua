@@ -262,7 +262,9 @@ function Derby:CheckPlayers()
 	--kick everyone out and broadcast the winner
 		for k,p in pairs(self.players) do
 			self:MessageGlobal(p:GetName() .. " has won the Demolition Derby!")
-			
+			print("[" ..self.name .. "] " .. p:GetName() .. " won the derby event")
+
+
 			local currentMoney = p:GetMoney()
 			self:Log(p:GetName() .. " Current Money: " .. tostring(currentMoney))
 			local addMoney = math.ceil(100 * math.exp(self.scaleFactor * (self.startPlayers - self.numPlayers))) / 2
@@ -302,6 +304,7 @@ function Derby:Start()
 	end
 	self:MessageGlobal("Starting Derby event with " .. tostring(self.numPlayers) .. " players.")
 	self:Log("Starting Derby event with " .. tostring(self.numPlayers) .. " players.")
+	print("[" ..self.name .. "] Started Event at (Location: " .. self.spawns.Location .. ", Players: " .. self.startPlayers .. ")")
 	self.derbyManager:CreateDerbyEvent()
 
 	self.highestMoney = self.startPlayers * 400
