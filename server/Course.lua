@@ -31,7 +31,7 @@ function Course:LoadManifest(path)
 		-- Make sure this line has stuff in it.
 		if string.find(line , "%S") then
 				-- Add the entire line, sans comments, to self.courseNames
-				table.insert(self.courseNames , line)
+				table.insert(self.courseNames , line:trim())
 				self.numCourses = self.numCourses + 1
 		end
 	end
@@ -41,7 +41,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 function Course:DetermineClass()
 	for index, course in pairs(self.courseNames) do
-		local path = "server/Courses/" .. course .. ".course"
+		local path = "server/Courses/" .. course:trim() .. ".course"
 		--check if path is invalid
 		if path == nil then
 			print("*ERROR* - Course path is nil!")
@@ -50,6 +50,7 @@ function Course:DetermineClass()
 		local file = io.open(path , "r") 
 		--check if file exists
 		if not file then
+			print("Determine Class")
 			print("*ERROR* - Cannot open course file: "..path)
 			return nil
 		end
@@ -57,11 +58,12 @@ function Course:DetermineClass()
 			if line:sub(1,1) == "T" then
 				line = line:gsub("Type%(", "")
 				line = line:gsub("%)", "")
+				line = line:trim()
 
 				if (line == "Small") then
-					table.insert(self.smallCourses, course)
+					table.insert(self.smallCourses, course:trim())
 				elseif (line == "Large") then
-					table.insert(self.largeCourses, course)
+					table.insert(self.largeCourses, course:trim())
 				end
 			end
 		end
