@@ -75,7 +75,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------
 function Derby:ModulesLoad()
-    Events:FireRegisteredEvent("HelpAddItem",
+    Events:Fire("HelpAddItem",
         {
             name = "Derby",
             text = "le"
@@ -83,7 +83,7 @@ function Derby:ModulesLoad()
 end
 
 function Derby:ModuleUnload()
-    Events:FireRegisteredEvent("HelpRemoveItem",
+    Events:Fire("HelpRemoveItem",
         {
             name = "Derby"
         } )
