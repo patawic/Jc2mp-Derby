@@ -85,7 +85,7 @@ function Derby:PostTick()
 		--remove player if they go below the Y axis cap
 		self:CheckMinimumY()
 		--Actively check for players & handle derby ending
-		--self:CheckPlayers()
+		self:CheckPlayers()
 
 		--Update Events
 		self.event:Update()
