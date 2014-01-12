@@ -9,7 +9,6 @@ end
 function Event:Parse(eventTable)
 	for index in pairs(eventTable) do
 		local time = math.random(eventTable[index].min, eventTable[index].max)
-		print(eventTable[index].min, eventTable[index].max, time)
 		local args = {}
 		args.min = eventTable[index].min
 		args.max = eventTable[index].max
