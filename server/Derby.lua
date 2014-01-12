@@ -19,9 +19,10 @@ function Derby:__init(name, manager, world)
 	self.course = Course(self.derbyManager)
 	self.spawns = self.course:LoadCourse()
 	self.courseType = self.spawns.courseType
-
+	self.event = Event(self, self.spawns.Event)
 	self.minPlayers = self.spawns.minPlayers
 	self.maxPlayers = self.spawns.maxPlayers
+
 	self.startPlayers = 0
 	self.numPlayers = 0
 	self.highestMoney = 0
@@ -34,7 +35,6 @@ function Derby:__init(name, manager, world)
 
 	Events:Subscribe("PostTick", self, self.PostTick)
 
-	Events:Register("JoinGamemode")
 	Events:Subscribe("JoinGamemode", self, self.JoinGamemode)
 	Events:Subscribe("PlayerEnterVehicle", self, self.enterVehicle)
 	Events:Subscribe("PlayerExitVehicle", self, self.exitVehicle)
@@ -85,14 +85,16 @@ function Derby:PostTick()
 		--remove player if they go below the Y axis cap
 		self:CheckMinimumY()
 		--Actively check for players & handle derby ending
-		self:CheckPlayers()
+		--self:CheckPlayers()
+
+		--Update Events
+		self.event:Update()
 	end
 end
 
 function Derby:PlayerDeath(args)
 	if self:HasPlayer(args.player) then
 		if (self.state ~= "Lobby" and args.player:GetWorld() == self.world) then
-			self:Log(args.player:GetName() .. " died")
 			local numberEnding = ""
 			local lastDigit = self.numPlayers % 10
 			if ((self.numPlayers < 10) or (self.numPlayers > 20 and self.numPlayers < 110) or (self.numPlayers > 120)) then
@@ -111,13 +113,9 @@ function Derby:PlayerDeath(args)
 			self:MessagePlayer(args.player, "Congratulations you came " ..tostring(self.numPlayers) .. numberEnding)
 			self:RemovePlayer(args.player)
 
-			self:Log(args.player:GetName() .. " came " ..tostring(self.numPlayers) .. numberEnding)
 			local currentMoney = args.player:GetMoney()
-			self:Log(args.player:GetName() .. " Current Money: " .. tostring(currentMoney))
 			local addMoney = math.ceil(100 * math.exp(self.scaleFactor * (self.startPlayers - self.numPlayers))) / 2
-			self:Log(args.player:GetName() .. " add Money: " .. tostring(addMoney))
 			args.player:SetMoney(currentMoney + addMoney)
-			self:Log(args.player:GetName() .. " New Money: " .. tostring(args.player:GetMoney()))
 		end
 	end
 end
@@ -272,13 +270,9 @@ function Derby:CheckPlayers()
 
 
 			local currentMoney = p:GetMoney()
-			self:Log(p:GetName() .. " Current Money: " .. tostring(currentMoney))
 			local addMoney = math.ceil(100 * math.exp(self.scaleFactor * (self.startPlayers - self.numPlayers))) / 2
-			self:Log(p:GetName() .. " add Money: " .. tostring(addMoney))
 			p:SetMoney(currentMoney + addMoney)
-			self:Log(p:GetName() .. " New Money: " .. tostring(p:GetMoney()))
 			self:RemovePlayer(p, "Congratulations you came 1st!")
-			self:Log(p:GetName() .. " Won")
 		end
 		self:Cleanup()
 	elseif (self.numPlayers == 0) then
@@ -293,7 +287,9 @@ function Derby:Start()
 	self.state = "Setup"
 	self.startPlayers = self.numPlayers
 	self.setupTimer = Timer()
+	self.event:ResetTimer()
 	self:SetClientState()
+
 
 	local tempPlayers = {}
 	for id , player in pairs(self.players) do
@@ -311,15 +307,11 @@ function Derby:Start()
 		idInc = idInc + divider
 	end
 	self:MessageGlobal("Starting Derby event with " .. tostring(self.numPlayers) .. " players.")
-	self:Log("Starting Derby event with " .. tostring(self.numPlayers) .. " players.")
 	print("[" ..self.name .. "] Started Event at (Location: " .. self.spawns.Location .. ", Players: " .. self.startPlayers .. ")")
 	self.derbyManager:CreateDerbyEvent()
 
 	self.highestMoney = self.startPlayers * 400
-	self:Log("Highest Money: ".. tostring(self.highestMoney))
 	self.scaleFactor = math.log(self.highestMoney/100)/self.startPlayers
-	self:Log("scaleFactor : ".. tostring(self.scaleFactor))
-
 end
 
 function Derby:SpawnPlayer(player, index)
@@ -360,7 +352,6 @@ function Derby:HasPlayer(player)
 end
 
 function Derby:JoinPlayer(player)
-	self:Log(player:GetName() .. " Joined")
 	if (player:GetWorld() ~= DefaultWorld) then
 		self:MessagePlayer(player, "You must exit other gamemodes before you can join.")
 	else
@@ -385,7 +376,6 @@ function Derby:JoinPlayer(player)
 end
 
 function Derby:RemovePlayer(player, message)
-	self:Log(player:GetName() .. " Left")
 	if message ~= nil then
 		self:MessagePlayer(player, message)    
 	end
@@ -427,10 +417,4 @@ end
 
 function Derby:MessageGlobal(message)
 	Chat:Broadcast("[" ..self.name .. "] " .. message, Color(0, 255, 255) )
-end
-
-function Derby:Log(message)
-	--local file = io.open("server/Logs/" .. self.name .. ".txt", "a+")
- 	--file:write(os.date().. " " .. message .. "\n")
- 	--file:close()
 end
