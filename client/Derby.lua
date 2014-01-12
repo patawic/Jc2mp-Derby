@@ -3,6 +3,8 @@ class 'Derby'
 function Derby:__init()
     Network:Subscribe("SetState", self, self.SetState)
 
+    Network:Subscribe("TriggerEvent", self, self.TriggerEvent)
+
     Network:Subscribe("OutOfArena", self, self.OutOfArena)
     Network:Subscribe("BackInArena", self, self.BackInArena)
     Network:Subscribe("enterVehicle", self, self.enterVehicle)
@@ -70,6 +72,10 @@ end
 function Derby:BackInArena()
     self.outOfArena = false
     self.vehicleHealthLost = -5
+end
+function Derby:TriggerEvent(event)
+    print("Triggered Event: " .. event)
+    Game:FireEvent(event)
 end
 ---------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------
