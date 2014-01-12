@@ -1,5 +1,7 @@
 class "DerbyManager"
 function DerbyManager:__init()
+	Chat:Broadcast( "JC2-MP-Derby 0.1 loaded.", Color(0, 255, 255))
+
 	self.count = 0
 	self.players = {}
 	self.playerIds = {}
