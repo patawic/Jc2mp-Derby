@@ -94,10 +94,12 @@ function Course:LoadCourse(name)
 	course.courseType = nil
 	course.minPlayers = nil
 	course.maxPlayers = nil
-	course.SpawnPoint = {}
 	course.Boundary = {}
 	course.MinimumY = nil
 	course.MaximumY = nil
+	course.Event = {}
+	course.SpawnPoint = {}
+
 
 	--loop through file line by line
 	for line in file:lines() do
@@ -117,6 +119,8 @@ function Course:LoadCourse(name)
 			course.MinimumY = self:MinimumY(line)
 		elseif line:sub(1,1) == "M" and line:sub(2,2) == "a"then
 			course.MaximumY = self:MaximumY(line)
+		elseif line:sub(1,1) == "E" then
+			table.insert(course.Event, self:Event(line))
 		elseif line:sub(1,1) == "S" then
 			table.insert(course.SpawnPoint, self:Spawn(line))
 		end
@@ -172,6 +176,24 @@ function Course:MaximumY(line)
 	line = line:gsub("%)", "")
 
 	return tonumber(line)
+end
+function Course:Event(line)
+	line = line:gsub("Event%(", "")
+	line = line:gsub("%)", "")
+	line = line:gsub(" ", "")
+
+	local tokens = line:split(",")  
+	local args = {}
+
+	args.min = tokens[1]
+	args.max = tokens[2]
+	args.events = {}
+
+	for i=3, #tokens, 1 do
+		table.insert(args.events, tokens[i])
+	end
+
+	return args
 end
 function Course:Spawn(line)
 	line = line:gsub("Spawn%(", "")
