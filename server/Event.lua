@@ -31,9 +31,9 @@ function Event:ResetEvent(index)
 end
 
 function Event:Update()
-	for index, item in pairs(self.events) do
+	for index, item in ipairs(self.events) do
 		if self.timer:GetSeconds() >= item.time then
-			for index, item in pairs(item.events) do
+			for index, item in ipairs(item.events) do
 				self:TriggerEvent(item)
 			end
 			self:ResetEvent(index)
