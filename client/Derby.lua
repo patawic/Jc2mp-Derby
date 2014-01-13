@@ -127,7 +127,7 @@ function Derby:Render()
 
 	if (self.state ~= "Inactive") then
 		local pos = Vector2(3, Render.Height - 32)
-		Render:DrawText(pos, "Derby v0.1 By Patawic", Color(255, 255, 255), TextSize.Default) 
+		Render:DrawText(pos, "Derby v0.1.1 By Patawic", Color(255, 255, 255), TextSize.Default) 
 	end
 	if (self.state == "Lobby") then
 		local pos = Vector2(3, Render.Height -  49)
