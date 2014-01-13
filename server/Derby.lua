@@ -51,8 +51,14 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 function Derby:PostTick()
 	if (self.state == "Lobby") then
-		if ((self.numPlayers >= self.minPlayers and self.startTimer:GetSeconds() > 20) or (self.numPlayers >= self.minPlayers and self.globalStartTimer:GetSeconds() > 300)) then
-			self:Start()
+		if (Server:GetPlayerCount() >= self.minPlayers) then
+			if ((self.numPlayers >= self.minPlayers and self.startTimer:GetSeconds() > 30) or (self.numPlayers >= self.minPlayers and self.globalStartTimer:GetSeconds() > 300)) then
+				self:Start()
+			end
+		else
+			if ((Server:GetPlayerCount() >= 2 and self.startTimer:GetSeconds() > 30) or (Server:GetPlayerCount() >= 2 and self.globalStartTimer:GetSeconds() > 300)) then
+				self:Start()
+			end
 		end
 	elseif (self.state == "Setup") then
 		if (self.setupTimer:GetSeconds() > 10) then
@@ -86,7 +92,6 @@ function Derby:PostTick()
 		self:CheckMinimumY()
 		--Actively check for players & handle derby ending
 		self:CheckPlayers()
-
 		--Update Events
 		self.event:Update()
 	end
