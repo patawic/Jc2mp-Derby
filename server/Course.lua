@@ -211,14 +211,20 @@ function Course:Spawn(line)
 	return args
 end
 function Course:PickCourse()
-	if self.derbyManager.largeActive == true then
+	if #self.smallCourses == 0 then
+		return table.randomvalue(self.largeCourses)
+	elseif #self.largeCourses == 0 then
 		return table.randomvalue(self.smallCourses)
 	else
-		if #self.largeCourses ~= 0 then
-			self.derbyManager.largeActive = true
-			return table.randomvalue(self.largeCourses)
-		else
+		if self.derbyManager.largeActive == true then
 			return table.randomvalue(self.smallCourses)
+		else
+			if #self.largeCourses ~= 0 then
+				self.derbyManager.largeActive = true
+				return table.randomvalue(self.largeCourses)
+			else
+				return table.randomvalue(self.smallCourses)
+			end
 		end
 	end
 end
