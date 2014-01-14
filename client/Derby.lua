@@ -111,7 +111,7 @@ function Derby:LocalPlayerInput(args)
 		if LocalPlayer:InVehicle() then
 			for i, action in ipairs(self.blockedKeys) do
 				if args.input == action then
-					--return false
+					return false
 				end
 			end
 		end

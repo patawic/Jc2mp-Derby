@@ -42,7 +42,7 @@ function Derby:__init(name, manager, world)
 
 	Events:Subscribe("JoinGamemode", self, self.JoinGamemode)
 	Events:Subscribe("PlayerEnterVehicle", self, self.enterVehicle)
-	--Events:Subscribe("PlayerExitVehicle", self, self.exitVehicle)
+	Events:Subscribe("PlayerExitVehicle", self, self.exitVehicle)
 	Events:Subscribe("PlayerDeath", self, self.PlayerDeath)
 	Events:Subscribe("PlayerQuit", self, self.PlayerLeave)
 
