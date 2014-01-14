@@ -92,12 +92,15 @@ function Course:LoadCourse(name)
 	local course = {}
 	course.Location = nil
 	course.courseType = nil
+	course.Time = nil
+	course.Weather = nil
 	course.minPlayers = nil
 	course.maxPlayers = nil
 	course.Boundary = {}
 	course.MinimumY = nil
 	course.MaximumY = nil
 	course.Event = {}
+	course.Vehicles = {}
 	course.SpawnPoint = {}
 
 
@@ -105,8 +108,12 @@ function Course:LoadCourse(name)
 	for line in file:lines() do
 		if line:sub(1,1) == "L" then
 			course.Location =  self:Location(line)
-		elseif line:sub(1,1) == "T" then
+		elseif line:sub(1,1) == "T" and line:sub(2,2) == "y" then
 			course.courseType =  self:Type(line)
+		elseif line:sub(1,1) == "T" and line:sub(2,2) == "i" then
+			course.Time =  self:Time(line)
+		elseif line:sub(1,1) == "W" then
+			course.Weather = self:Weather(line)
 		elseif line:sub(1,1) == "P" then
 			local playerCount = self:Players(line)
 			course.minPlayers = playerCount.minPlayers
@@ -115,12 +122,14 @@ function Course:LoadCourse(name)
 			local boundary = self:Boundary(line)
 			course.Boundary.position = boundary.position
 			course.Boundary.radius = boundary.radius
-		elseif line:sub(1,1) == "M" and line:sub(2,2) == "i"then
+		elseif line:sub(1,1) == "M" and line:sub(2,2) == "i" then
 			course.MinimumY = self:MinimumY(line)
-		elseif line:sub(1,1) == "M" and line:sub(2,2) == "a"then
+		elseif line:sub(1,1) == "M" and line:sub(2,2) == "a" then
 			course.MaximumY = self:MaximumY(line)
 		elseif line:sub(1,1) == "E" then
 			table.insert(course.Event, self:Event(line))
+		elseif line:sub(1,1) == "V" then
+			course.Vehicles = self:Vehicle(line)
 		elseif line:sub(1,1) == "S" then
 			table.insert(course.SpawnPoint, self:Spawn(line))
 		end
@@ -137,6 +146,39 @@ function Course:Type(line)
 	line = line:gsub("Type%(", "")
 	line = line:gsub("%)", "")
 
+	return line
+end
+function Course:Time(line)
+	line = line:gsub("Time%(", "")
+	line = line:gsub("%)", "")
+	line = line:gsub(" ", "")
+
+	local tokens = line:split(",")   
+	if tokens[1] == "random" then
+		math.randomseed(os.time())
+		tokens[1] = math.random() * 24
+	else
+		tokens[1] = tonumber(tokens[1])
+	end
+	if tokens[2] == "random" then
+		math.randomseed(os.time())
+		tokens[2] = math.random() * 60
+	else
+		tokens[2] = tonumber(tokens[2])
+	end
+	return tokens
+end
+function Course:Weather(line)
+	line = line:gsub("Weather%(", "")
+	line = line:gsub("%)", "")
+	line = line:gsub(" ", "")
+
+	if line == "random" then
+		math.randomseed(os.time())
+		line = math.random() * 2
+	else
+		line = tonumber(line)
+	end
 	return line
 end
 function Course:Players(line)
@@ -195,6 +237,26 @@ function Course:Event(line)
 
 	return args
 end
+function Course:Vehicle(line)
+	line = line:gsub("Vehicles%(", "")
+	line = line:gsub("%)", "")
+	line = line:gsub(" ", "")
+
+	local tokens = line:split(",")  
+
+	local args = {}
+	if tokens[1] == "true"  then
+		for i=2, #tokens, 1 do
+			table.insert(args, tokens[i])
+		end
+	else
+		math.randomseed(os.time())
+		local var = math.floor(math.random(2, #tokens))
+		print("Random number: "..var)
+		table.insert(args, tokens[var])
+	end
+	return args
+end
 function Course:Spawn(line)
 	line = line:gsub("Spawn%(", "")
 	line = line:gsub("%)", "")
@@ -202,11 +264,9 @@ function Course:Spawn(line)
 
 	local tokens = line:split(",")   
 	local args = {}
-	--model id
-	args.model  = tonumber(tokens[1])
 	-- Create tables containing appropriate strings
-	args.position	= Vector3(tonumber(tokens[2]), tonumber(tokens[3]), tonumber(tokens[4]))
-	args.angle		= Angle(tonumber(tokens[5]), tonumber(tokens[6]), tonumber(tokens[7]))
+	args.position	= Vector3(tonumber(tokens[1]), tonumber(tokens[2]), tonumber(tokens[3]))
+	args.angle		= Angle(tonumber(tokens[4]), tonumber(tokens[5]), tonumber(tokens[6]))
 
 	return args
 end
