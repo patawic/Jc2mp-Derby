@@ -23,10 +23,9 @@ function Derby:__init(name, manager, world)
 	self.minPlayers = self.spawns.minPlayers
 	self.maxPlayers = self.spawns.maxPlayers
 
-
-	self.world:SetTime(self.spawns.Time[1])
-	self.world:SetTimeStep(self.spawns.Time[2])
-	self.world:SetWeatherSeverity(self.spawns.Weather)
+	self.world:SetTime(tonumber(self.spawns.Time[1]))
+	self.world:SetTimeStep(tonumber(self.spawns.Time[2]))
+	self.world:SetWeatherSeverity(tonumber(self.spawns.Weather))
 
 	self.startPlayers = 0
 	self.numPlayers = 0
