@@ -60,9 +60,9 @@ function Course:DetermineClass()
 				line = line:gsub("%)", "")
 				line = line:trim()
 
-				if (line == "Small") then
+				if (line == "small") then
 					table.insert(self.smallCourses, course:trim())
-				elseif (line == "Large") then
+				elseif (line == "large") then
 					table.insert(self.largeCourses, course:trim())
 				end
 			end
@@ -157,14 +157,10 @@ function Course:Time(line)
 	if tokens[1] == "random" then
 		math.randomseed(os.time())
 		tokens[1] = math.random() * 24
-	else
-		tokens[1] = tonumber(tokens[1])
 	end
 	if tokens[2] == "random" then
 		math.randomseed(os.time())
 		tokens[2] = math.random() * 60
-	else
-		tokens[2] = tonumber(tokens[2])
 	end
 	return tokens
 end
@@ -176,8 +172,6 @@ function Course:Weather(line)
 	if line == "random" then
 		math.randomseed(os.time())
 		line = math.random() * 2
-	else
-		line = tonumber(line)
 	end
 	return line
 end
