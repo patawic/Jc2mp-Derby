@@ -23,6 +23,11 @@ function Derby:__init(name, manager, world)
 	self.minPlayers = self.spawns.minPlayers
 	self.maxPlayers = self.spawns.maxPlayers
 
+
+	self.world:SetTime(self.spawns.Time[1])
+	self.world:SetTimeStep(self.spawns.Time[2])
+	self.world:SetWeatherSeverity(self.spawns.Weather)
+
 	self.startPlayers = 0
 	self.numPlayers = 0
 	self.highestMoney = 0
@@ -37,7 +42,7 @@ function Derby:__init(name, manager, world)
 
 	Events:Subscribe("JoinGamemode", self, self.JoinGamemode)
 	Events:Subscribe("PlayerEnterVehicle", self, self.enterVehicle)
-	Events:Subscribe("PlayerExitVehicle", self, self.exitVehicle)
+	--Events:Subscribe("PlayerExitVehicle", self, self.exitVehicle)
 	Events:Subscribe("PlayerDeath", self, self.PlayerDeath)
 	Events:Subscribe("PlayerQuit", self, self.PlayerLeave)
 
@@ -322,7 +327,8 @@ end
 function Derby:SpawnPlayer(player, index)
 	if (IsValid(self.spawns.SpawnPoint[index]) ~= nil) then
 		--CREATE THE VEHICLE
-		local vehicle = Vehicle.Create(self.spawns.SpawnPoint[index].model, self.spawns.SpawnPoint[index].position, self.spawns.SpawnPoint[index].angle)
+		local vehicleid = tonumber(table.randomvalue(self.spawns.Vehicles))
+		local vehicle = Vehicle.Create(vehicleid, self.spawns.SpawnPoint[index].position, self.spawns.SpawnPoint[index].angle)
 		local color = Color(math.random(255),math.random(255),math.random(255))
 		vehicle:SetEnabled(true)
 		vehicle:SetHealth(1)
@@ -370,6 +376,7 @@ function Derby:JoinPlayer(player)
 			self:MessagePlayer(player, "You have been entered into the next Derby event! It will begin shortly.") 
 
 			Network:Send(player, "SetState", "Lobby")
+			Network:Send(player, "CourseName", self.spawns.Location)
 			self:UpdatePlayerCount()
 			self.startTimer:Restart()
 
@@ -404,7 +411,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 function Derby:Cleanup()
 	self.state = "Cleanup"
-	if self.courseType == "Large" then
+	if self.courseType == "large" then
 		self.derbyManager.largeActive = false
 	end
 	self.world:Remove()
