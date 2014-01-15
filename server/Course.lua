@@ -154,11 +154,11 @@ function Course:Time(line)
 	line = line:gsub(" ", "")
 
 	local tokens = line:split(",")   
-	if tokens[1] == "random" then
+	if tokens[1]:trim() == "random" then
 		math.randomseed(os.time())
 		tokens[1] = math.random() * 24
 	end
-	if tokens[2] == "random" then
+	if tokens[2]:trim() == "random" then
 		math.randomseed(os.time())
 		tokens[2] = math.random() * 60
 	end
@@ -169,7 +169,7 @@ function Course:Weather(line)
 	line = line:gsub("%)", "")
 	line = line:gsub(" ", "")
 
-	if line == "random" then
+	if line:trim() == "random" then
 		math.randomseed(os.time())
 		line = math.random() * 2
 	end
