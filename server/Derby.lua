@@ -60,7 +60,7 @@ function Derby:PostTick()
 				self:Start()
 			end
 		else
-			if ((Server:GetPlayerCount() >= 2 and self.startTimer:GetSeconds() > 30) or (Server:GetPlayerCount() >= 2 and self.globalStartTimer:GetSeconds() > 300)) then
+			if ((self.numPlayers >= 2 and self.startTimer:GetSeconds() > 30) or (self.numPlayers >= 2 and self.globalStartTimer:GetSeconds() > 300)) then
 				self:Start()
 			end
 		end
