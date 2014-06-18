@@ -37,15 +37,16 @@ function Derby:__init(name, manager, world)
 	self.countdownTimer = nil
 	self.derbyTimer = nil
 
-	Events:Subscribe("PostTick", self, self.PostTick)
+	self.eventSubs = {}
+	table.insert(self.eventSubs , Events:Subscribe("PostTick", self, self.PostTick))
 
-	Events:Subscribe("JoinGamemode", self, self.JoinGamemode)
-	Events:Subscribe("PlayerEnterVehicle", self, self.enterVehicle)
-	Events:Subscribe("PlayerExitVehicle", self, self.exitVehicle)
-	Events:Subscribe("PlayerDeath", self, self.PlayerDeath)
-	Events:Subscribe("PlayerQuit", self, self.PlayerLeave)
+	table.insert(self.eventSubs , Events:Subscribe("JoinGamemode", self, self.JoinGamemode))
+	table.insert(self.eventSubs , Events:Subscribe("PlayerEnterVehicle", self, self.enterVehicle))
+	table.insert(self.eventSubs , Events:Subscribe("PlayerExitVehicle", self, self.exitVehicle))
+	table.insert(self.eventSubs , Events:Subscribe("PlayerDeath", self, self.PlayerDeath))
+	table.insert(self.eventSubs , Events:Subscribe("PlayerQuit", self, self.PlayerLeave))
 
-	Events:Subscribe("ModuleUnload", self, self.ModuleUnload)
+	table.insert(self.eventSubs , Events:Subscribe("ModuleUnload", self, self.ModuleUnload))
 
 	self:MessageGlobal("A Derby event is about to begin! (Location: " .. self.spawns.Location .. ", Maximum Players: " .. self.maxPlayers ..") /derby to join")
 end
@@ -285,7 +286,7 @@ function Derby:CheckPlayers()
 		end
 		self:Cleanup()
 	elseif (self.numPlayers == 0) then
-		print ("no players left")
+		print ("[" ..self.name .. "] No Players Left, Starting cleanup process")
 		self:Cleanup()
 	end
 end
@@ -413,11 +414,19 @@ function Derby:Cleanup()
 	if self.courseType == "large" then
 		self.derbyManager.largeActive = false
 	end
+	--Remove world and contents
 	self.world:Remove()
+	-- Unsubscribe from events.
+	for n , event in ipairs(self.eventSubs) do
+		Events:Unsubscribe(event)
+	end
+		--remove derby from manager
 	self.derbyManager:RemoveDerby(self)
+	--remove any left over players
 	for index, player in pairs(self.players) do
 		self:RemovePlayer(player)
 	end
+	print ("[" ..self.name .. "] Cleanup Process Complete")
 end
 ---------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------CHAT-------------------------------------------------------------
