@@ -246,7 +246,6 @@ function Course:Vehicle(line)
 	else
 		math.randomseed(os.time())
 		local var = math.floor(math.random(2, #tokens))
-		print("Random number: "..var)
 		table.insert(args, tokens[var])
 	end
 	return args
